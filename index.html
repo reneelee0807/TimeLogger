@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<title>demo of file reader</title>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+	<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.3/angular.min.js"></script>
+</head>
+
+<body data-ng-app="myApp" >
+
+	<div  class="container" data-ng-controller="MainController as mc">	
+	<div class="col-sm-12">
+        <a href="#uploadModal" class="btn btn-info" data-toggle="modal"><span class="glyphicon glyphicon-folder-open"></span> <span>Upload File</span></a> 
+        <a href="#editLogModal" class="btn btn-success" data-toggle="modal"><span class="glyphicon glyphicon-plus"></span>Edit Log Info</a>
+        <a href="#saveModal" class="btn btn-warning" data-toggle="modal"><span class="glyphicon glyphicon-download-alt"></span> <span>Save File</span></a>
+        <a class="btn btn-danger" ng-click="mc.displaySummaryInfo('block')"><span class="glyphicon glyphicon-download-alt"></span> <span>Show Summary</span></a>                         
+    </div>
+	<!--<div class="row">
+		<h1> Select a file </h1>
+		<a href="#" data-toggle="tooltip" title="load timeLog file!">
+		<input type="file" style="display:block" on-read-file="mc.showContent(fileContent)" >
+		</a>
+		<br>
+		<button style="display:block" data-ng-click="mc.show()">Show</button>
+		 <alternative-dynamic-table></alternative-dynamic-table> 
+		
+	</div>-->
+
+	<div class ="row">
+		<div class="table col-md-4 table-wrapper">
+			<table data-ng-if="mc.theTimeLogTable" >
+				<tr>      
+                    <td><h3>Student:</h3></td>
+                    <td id="student" class="ng-cloak"><h3>{{mc.theTimeLogTable.allMyStudentInfo[1]}}</h3></td>       
+                </tr>
+                <tr>
+                    <td><h3>Program:</h3></td>
+                    <td id="program" class='ng-cloak'><h3>{{mc.theTimeLogTable.allMyStudentInfo[2]}}</h3></td>
+                </tr>
+                <tr>
+                    <td><h3>Instructor:</h3></td>
+                    <td id='instructor' class='ng-cloak'><h3>{{mc.theTimeLogTable.allMyStudentInfo[3]}}</h3></td>
+                </tr>
+                
+            </table>
+		</div>
+		<br>
+		<div class="row">
+			<div class="col-sm-9">
+				<h2>TimeLog by <b>Date</b></h2>
+			</div>
+			<div class="col-sm-3">
+				<a href="#addTimeLogModal" class="btn btn-success" data-toggle="modal"><span class="glyphicon glyphicon-plus"></span>Add New TimeLog</a>
+				<a href="#deleteAllModal" class="btn btn-danger" data-toggle="modal"><span class="glyphicon glyphicon-trash"></span> <span>Delete All</span></a>                         
+			</div>
+		</div>
+        
+		
+		<!--display the timelog !-->
+		<div class="table-wrapper">
+            <table data-ng-if="mc.theTimeLogTable" id="table1" class="table table-bordered table-striped">            
+                <thead>    
+                    <tr>
+                        <td>Project</td>
+                        <td>Phase</td>
+                        <td>Date</td>
+                        <td>Start Time</td>
+                        <td>Int Time</td>
+                        <td>Finish Time</td>
+                        <td>Delta Time</td>
+                        <td>Comments</td>
+                        <td>Actions</td>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr  class='ng-cloak' data-ng-repeat="timeLogInfo in mc.theTimeLogTable.allMyTimeLogInfo| orderBy:'date'">
+
+                        <td ng-attr-id="{{$index + 'project'}}" ng-model="mc.updateRecord.project">{{ timeLogInfo.project }}</td>
+                        <td ng-attr-id="{{$index+'phase'}}" ng-model="mc.updateRecord.phase">{{ timeLogInfo.phase }}</td>
+                        <td ng-attr-id="{{$index +'date'}}" ng-model="mc.updateRecord.date">{{ timeLogInfo.date | date: mediumDate}}</td>
+                        <td  ng-attr-id="{{$index +'start'}}" ng-model="mc.updateRecord.start">{{ timeLogInfo.start | date: "h:mm a" }}</td>
+                        <td ng-attr-id="{{$index + 'intTime'}}" ng-model="mc.updateRecord.intTime">{{ timeLogInfo.intTime }}</td>
+                        <td ng-attr-id="{{$index + 'stop'}}" ng-model="mc.updateRecord.stop">{{ timeLogInfo.stop | date: "h:mm a"}}</td>
+                        <td ng-attr-id="{{$index + 'deltaTime'}}" ng-model="mc.updateRecord.deltaTime">{{ timeLogInfo.deltaTime}}</td>
+                        <td ng-attr-id="{{$index + 'comment'}}" ng-model="mc.updateRecord.comment">{{ timeLogInfo.comment }}</td>
+                        <td><button ng-click="mc.deleteTimeLogIndex = timeLogInfo" class="btn btn-danger" data-toggle="modal" data-target="#deleteOneModal"><span class="glyphicon glyphicon-trash" ></span></button>
+                            <a href="#editRecordModal" class="btn btn-info" data-toggle="modal" ng-click="mc.getObjectInfo(mc.theTimeLogTable.allMyTimeLogInfo.indexOf(timeLogInfo))"><span class="glyphicon glyphicon-pencil"></span></a></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+		
+		
+		
+		<!-- save timelog form !-->
+		<div id="addTimeLogModal" class="modal fade">
+			<div class="modal-dialog">
+				<div class="modal-content">
+				<form class="form-horizontal" data-ng-submit="mc.saveTimeLog()">
+					<div class="modal-header">                      
+                        <h4 class="modal-title">Add New Time Log</h4>
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    </div>
+					<div class="modal-body">  
+						<div class="form-group">
+							<label class="control-label col-sm-1">Project:</label>
+							<input type ="text" class="form-control input-sm" data-ng-model="mc.addTimeLog.project">
+						</div>
+						<div class="form-group">
+							<label class="control-label col-sm-1">Phase:</label>
+							<input type ="text" class="form-control input-sm" data-ng-model="mc.addTimeLog.phase">
+						</div>
+						<div class="form-group ">
+							<label class="control-label col-sm-1">Date:</label>
+							<input type ="date" id="date" value="2017-05-01" class="form-control input-sm" data-ng-model="mc.addTimeLog.date">
+						</div>
+						<div class="form-group ">
+							<label class="control-label col-sm-1">Start:</label>
+							<input type ="time" id="start" value="00:00" class="form-control input-sm" value="00:00" data-ng-model="mc.addTimeLog.start" required>
+						</div>
+						<div class="form-group ">
+							<label class="control-label col-sm-1">Int Time:</label>
+							<input type="number" id="intTimeHour" data-ng-model="mc.addTimeLog.intTimeHour" placeholder="hour" required>
+							<input type="number" id="intTimeMins" data-ng-model="mc.addTimeLog.intTimeMins" placeholder="mins" required>
+						</div>
+						<div class="form-group">
+							<label class="control-label col-sm-1">Stop:</label>
+							<input type ="time" id="stop" value="00:00" class="form-control input-sm" data-ng-model="mc.addTimeLog.stop" ng-attr-min="{{mc.addTimeLog.start}}" required>
+						</div>
+
+						<div class="form-group">
+							<label class="control-label col-sm-1">Comments:</label>
+							<input type ="text" id="comment" data-ng-model="mc.addTimeLog.comment">
+						</div>
+					</div>	
+					<div class="modal-footer">
+                        <input type="button" class="btn btn-info" data-dismiss="modal" value="Back">
+                        <input type="submit" class="btn btn-success" value="Add">
+                    </div>
+                </form>
+            </div>
+        </div>
+	</div>
+	<!--<br>
+	<button ng-click="mc.saveTimeLog()">submit</button> <br> 
+	
+	
+	<div class="row">
+      <div>
+        <button class="btn btn-primary" ng-click="mc.addClickHandler()">Save</button>
+        <button class="btn btn-default" ng-click="mc.resetClickHandler()">Clear Form</button>
+      </div>
+
+    </div>!-->
+	
+	<div id="uploadModal" class="modal fade">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">                      
+                        <h4 class="modal-title">Upload</h4>
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                </div>
+                <div class="modal-body container">
+                    <input type="file" style="display:block" on-read-file="mc.showContent(fileContent)" class="btn btn-sm-3 col-6 "/>       
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-info" data-dismiss="modal" value="Cancel">Back</button>
+                </div>
+            </div>
+        </div>
+    </div>
+	
+	<!-- edit timelog !-->
+	<div id="editRecordModal" class="modal fade">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <form name='salesForm' data-ng-submit="mc.editTimeLog()">
+                        <div class="modal-header">
+                            <h4 class="modal-title">Edit TimeLog</h4>
+                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="form-group">
+                                <label class="control-label col-sm-3">Project</label>
+                                <input type="text" id="project" ng-attr-value="{{mc.updateTimeLog.project}}" data-ng-model="mc.addTimeLog.project">
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label col-sm-3">Phase:</label>
+                            <input type="text" id="phase" ng-attr-value="{{mc.updateTimeLog.phase}}" data-ng-model="mc.addTimeLog.phase">
+                        </div>
+                        <div class="form-group">
+                            <label class="control-label col-sm-3">Date</label>
+                            <input type="Date" id="editDate" ng-attr-value="{{mc.updateTimeLog.date}}" data-ng-model="mc.addTimeLog.editDate">
+                        </div>
+                        <div class="form-group">
+                            <label class="control-label col-sm-3" >Start</label>
+                            <input type="Time" id="editStart"  value="00:00" data-ng-model="mc.addTimeLog.start" >
+                        </div>
+                        <div class="form-group">
+                            <label class="control-label col-sm-3 ">Interval Time</label>
+                            <input type="number" id="intTimeHour" data-ng-model="mc.addTimeLog.intTimeHour">
+                            <input type="number" id="intTimeMins" data-ng-model="mc.addTimeLog.intTimeHour" ng-attr-placeholder="{{mc.updateTimeLog.intTime}} mins ">
+                        </div>              
+                        <div class="form-group">
+                            <label class="control-label col-sm-3">Stop</label>
+                            <input type="Time" id="editStop" value="00:00" data-ng-model="mc.addTimeLog.stop">    
+                        </div>
+                        <div class="form-group">
+                            <label class="control-label col-sm-3">Comments</label>
+                            <textarea rows='5' id="comment" data-ng-attr-placeholder="{{mc.updateTimeLog.comment}}" data-ng-model="mc.addTimeLog.comment"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <input type="button" class="btn btn-info" data-dismiss="modal" value="Cancel">
+                        <input type="submit" class="btn btn-success"  value="Save">
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+	
+	<div id="deleteOneModal" class="modal fade">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">                      
+                        <h4 class="modal-title">Delete</h4>
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                </div>
+                <div class="modal-body container">
+                    <p>Are you sure you want to delete this row?</p>
+                </div>
+                <div class="modal-footer">
+                        <input type="button" class="btn btn-info" data-dismiss="modal" value="Cancel">
+                        <button class="btn btn-success" ng-click="mc.deleteTimeLog()">Yes</button> 
+                </div>
+            </div>
+        </div>
+    </div>
+	
+	<div id="deleteAllModal" class="modal fade">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">                      
+                        <h4 class="modal-title">Delete All</h4>
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                </div>
+                <div class="modal-body container">
+                    <p>Are you sure you want to delete all data?</p>
+                </div>
+                <div class="modal-footer">
+                        <input type="button" class="btn btn-info" data-dismiss="modal" value="Back">
+                        <button class="btn btn-success" ng-click="mc.theTimeLogTable.allMyTimeLogInfo = []">Yes</button> 
+                </div>
+            </div>
+        </div>
+    </div>
+	<!--<div class="row" ng-show="mc.theTimeLogTable">
+	<table class = "table table-bordered table-striped">
+		<thead>
+			<tr>
+				<th>Student</th>
+				<th>Program</th> 
+				<th>Instructor</th> 	
+			</tr>
+		</thead>
+		<tbody>
+			<tr ng-repeat="timeLog in mc.theTimeLogTable.allMyStudentInfo">
+				<td >
+				{{timeLog.student}}
+				</td>
+				<td>
+				{{timeLog.program}}
+				</td>
+				<td>
+				{{timeLog.instructor}}
+				</td>
+			</tr>
+		</tbody>
+	</table>	
+	<table class = "table table-bordered table-striped">
+		<thead>
+			<tr>
+				<th>Project</th>
+				<th>Phase</th> 
+				<th>Date</th> 
+				<th>Start</th> 
+				<th>Int Time:</th> 
+				<th>Stop</th>
+				<th>Delta Time</th>
+				<th>Comments</th>
+				<th>Action</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr ng-repeat="timeLog in mc.theTimeLogTable.allMyTimeLogInfo">
+
+				<td>{{timeLog.project}}</td>
+				<td>{{timeLog.phase}}</td>
+				<td>{{timeLog.date | date:'dd'}}/{{timeLog.date | date:'MM'}}/{{timeLog.date | date:'yy'}}</td>
+				<td>{{timeLog.start | date:'HH'}}:{{timeLog.start| date:'mm'}}</td>
+				<td>{{timeLog.intTime}}</td>
+				<td>{{timeLog.stop | date:'HH'}}:{{timeLog.stop| date:'mm'}}</td>
+				<td>{{timeLog.deltaTime}}</td>
+				<td>{{timeLog.comment}}</td>
+				<td>
+					<button class="btn btn-info" ng-click="mc.editClickHandler(timeLog)">
+						<a href="#" data-toggle="tooltip" title="Edit me!"><span class="glyphicon glyphicon-pencil"></a>
+					</button>
+					<button class="btn btn-danger" ng-click="mc.removeClickHandler(timeLog)">
+						<a href="#" data-toggle="tooltip" title="Remove me!"><span class="glyphicon glyphicon-remove"></a>
+					</button>
+				</td>
+			</tr>
+		<tbody>
+	</table>!-->
+	
+	
+	<!-- save file modal !-->
+	<div id="saveModal" class="modal fade">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form name='saveForm' data-ng-submit="mc.updateFileInfoContent(); mc.saveToFile()">
+                    <div class="modal-header">                      
+                            <h4 class="modal-title">Save</h4>
+                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    </div>
+                    <div class="modal-body container">
+                        <div class="form-group">
+                            <label>Save File Name:</label>
+                            <input type="text" id="program" data-ng-model="mc.updateFileInfo[0]" ng-attr-value="{{mc.timelogger.allMyFileInfo[0]}}">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                            <input type="button" class="btn btn-info" data-dismiss="modal" value="Back">
+                            <button class="btn btn-success" type="submit" >Yes</button> 
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+	
+	<h3  data-ng-if="mc.theTimeLogTable">The sum of  Interrupting time: {{mc.theTimeLogTable.calSumIntTime()}}</h3>
+	<h3  data-ng-if="mc.theTimeLogTable">The sum of  Delta time: {{mc.theTimeLogTable.calSumDeltaTime()}}</h3>
+	<h3  data-ng-if="mc.theTimeLogTable">The average values of Interrupting time: {{mc.theTimeLogTable.getMeanIntTime()}}</h3>
+	<h3  data-ng-if="mc.theTimeLogTable">The average values of Delta time: {{mc.theTimeLogTable.getMeanDeltaTime()}}</h3>
+	<h3  data-ng-if="mc.theTimeLogTable">The Correlation Coefficient of inter time and Delta time: {{mc.theTimeLogTable.getCorrelationCoefficient()}}</h3>
+	</div>
+
+	
+	
+
+
+
+	
+	<script src="src/timeLogTable.js"></script>
+	<script src="src/studentInfo.js"></script>
+	<script src="src/timeLogInfo.js"></script>
+	<script src="src/alternative-dynamictable-directive.js"></script>
+	<script src="src/onreadfile-directive.js"></script>
+	<script src="src/mainController.js"></script>
+	<script src="src/main.js"></script>
+</body>
+
+</html>
